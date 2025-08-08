@@ -112,15 +112,23 @@ with tab2:
         detector = cv2.QRCodeDetector()
         data, points, _ = detector.detectAndDecode(img)
         if points is not None and data:
-            return data
-        return None
+            points = points[0].astype(int)
+            for i in range(len(points)):
+                pt1 = tuple(points[i])
+                pt2 = tuple(points[(i + 1) % len(points)])
+                cv2.line(img, pt1, pt2, (0, 255, 0), 2)
+            return data, img
+        return None, img
 
     if uploaded_file:
         img = Image.open(uploaded_file)
-        st.image(img, caption="Uploaded QR Code", use_column_width=True)
+        img_np = np.array(img.convert("RGB"))  # Ensure RGB
+        img_cv = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
 
-        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        decoded_data = decode_qr_opencv(img_cv)
+        decoded_data, annotated_img = decode_qr_opencv(img_cv)
+        annotated_img_rgb = cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB)
+
+        st.image(annotated_img_rgb, caption="Scanned QR Code", use_container_width=True)
 
         if decoded_data:
             st.success(f"🔓 Decoded Data: {decoded_data}")
@@ -140,18 +148,18 @@ with tab3:
 
     ---
     **Developed by:**  
-    AKSHAYA V, DHARSHINI J, HARSHITHA B.M, SRIMATHI K
+    DHARSHINI J, SRIMATHI K, HARSHITHA B.M, AKSHAYA V
 
     **Contact:**  
     - Email: dharshudharshu148@gmail.com, acquireness@gmail.com  
-    - Website: [https://yourwebsite.com](https://yourwebsite.com)
+    - Email: manjunath.m37@gmail.com, akshayavelu31@gmail.com  
 
     ---
     Thank you for using our app! Feel free to contribute or suggest features.
     """)
 
     st.subheader("🔗 Link of the Project")
-    st.markdown("[Click here to view the project](https://your-project-link.com)")
+    st.markdown("[Click here to view the project](https://igq6tcjypjpmh9hivnabjc.streamlit.app/)")
 
     st.subheader("🖼️ Snapshots of the Project")
 
@@ -172,6 +180,7 @@ with tab3:
         st.markdown("### Saved Snapshots:")
         for fname in saved_files:
             fpath = os.path.join(SNAPSHOT_DIR, fname)
-            st.image(fpath, use_column_width=True)
+            st.image(fpath, use_container_width=True)
     else:
         st.info("No snapshots uploaded yet.")
+
